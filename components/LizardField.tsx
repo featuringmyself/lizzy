@@ -26,9 +26,10 @@ function pointInBounds(x: number, y: number, bounds: LizardBounds): boolean {
 
 type LizardFieldProps = {
     motionOffset: MotionOffset;
+    onLizardHit?: () => void;
 };
 
-export default function LizardField({ motionOffset }: LizardFieldProps) {
+export default function LizardField({ motionOffset, onLizardHit }: LizardFieldProps) {
     const { width, height } = useWindowDimensions();
     const playGunSound = useGunSound();
     const [ids, setIds] = useState<number[]>([]);
@@ -81,13 +82,14 @@ export default function LizardField({ motionOffset }: LizardFieldProps) {
             const bounds = boundsRef.current.get(id);
             if (bounds && pointInBounds(aimX, aimY, bounds)) {
                 removeLizard(id);
+                onLizardHit?.();
                 void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
                 return;
             }
         }
 
         void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }, [height, ids, playGunSound, removeLizard, width]);
+    }, [height, ids, onLizardHit, playGunSound, removeLizard, width]);
 
     const handleExitScreen = useCallback(
         (id: number) => removeLizard(id),
