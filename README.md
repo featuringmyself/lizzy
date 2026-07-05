@@ -1,50 +1,127 @@
-# Welcome to your Expo app 👋
+# Lizzy 🦎
 
-This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
+**Lizzy** is an augmented-reality lizard shooting game for your phone. Point your device at a wall, and lizards crawl out of the surface. Aim, tap, and shoot them before they get away.
 
-## Get started
+Turn any blank wall into a hunting ground.
 
-1. Install dependencies
+---
 
-   ```bash
-   npm install
-   ```
+## How It Works
 
-2. Start the app
+1. **Point** — Open the app and aim your phone at a flat surface (a wall works best).
+2. **Spawn** — Lizards appear on the surface, scurrying across the "wall" in front of you.
+3. **Shoot** — Tap the screen to fire at the lizards. Hit them before they escape off-screen.
+4. **Score** — Rack up points, unlock new lizard types, and chase high scores.
 
-   ```bash
-   npx expo start
-   ```
+The camera feed becomes your viewport. Lizards are overlaid onto the real world, so it feels like they're actually crawling on the wall in front of you.
 
-In the output, you'll find options to open the app in a
+---
 
-- [development build](https://docs.expo.dev/develop/development-builds/introduction/)
-- [Android emulator](https://docs.expo.dev/workflow/android-studio-emulator/)
-- [iOS simulator](https://docs.expo.dev/workflow/ios-simulator/)
-- [Expo Go](https://expo.dev/go), a limited sandbox for trying out app development with Expo
+## Features
 
-You can start developing by editing the files inside the **app** directory. This project uses [file-based routing](https://docs.expo.dev/router/introduction).
+### Core Gameplay
+- Real-time camera view as the game canvas
+- Tap-to-shoot mechanics with haptic feedback
+- Score tracking and combo multipliers
+- Wave-based spawning with increasing difficulty
+- Game over screen with stats and retry
 
-## Get a fresh project
+### Lizard Types
+Different lizards behave differently — learn their patterns to hunt them effectively.
 
-When you're ready, run:
+| Lizard | Behavior |
+|--------|----------|
+| **Common Gecko** | Slow, predictable path. Easy points. |
+| **Speed Skink** | Fast and erratic. Hard to hit. |
+| **Armored Iguana** | Takes multiple shots to take down. |
+| **Camo Chameleon** | Blends in and fades — watch closely. |
+| **Boss Komodo** | Rare spawn. High health, high reward. |
+
+More lizard types will be added over time.
+
+### Planned Features
+- **Power-ups** — Slow-mo, multi-shot, and area blast
+- **Daily challenges** — Unique spawn patterns and score targets
+- **Leaderboards** — Compete with friends for the top spot
+- **Lizard bestiary** — Collect and catalog every species you encounter
+- **Sound design** — Satisfying shoot/hit/miss audio and ambient effects
+- **Themes** — Jungle, desert, urban, and more environments
+
+---
+
+## Tech Stack
+
+| Layer | Technology |
+|-------|------------|
+| Framework | [Expo SDK 54](https://docs.expo.dev/) + [Expo Router](https://docs.expo.dev/router/introduction/) |
+| Language | TypeScript |
+| UI | React Native + [NativeWind](https://www.nativewind.dev/) (Tailwind CSS) |
+| Camera | [expo-camera](https://docs.expo.dev/versions/latest/sdk/camera/) |
+| Haptics | [expo-haptics](https://docs.expo.dev/versions/latest/sdk/haptics/) |
+| Animations | [react-native-reanimated](https://docs.swmansion.com/react-native-reanimated/) |
+| Package manager | [Bun](https://bun.sh/) |
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) (LTS) or [Bun](https://bun.sh/)
+- [Expo Go](https://expo.dev/go) on your phone, or Xcode / Android Studio for simulators
+- A physical device with a camera is recommended — the game needs a real camera feed
+
+### Install
 
 ```bash
-npm run reset-project
+bun install
 ```
 
-This command will move the starter code to the **app-example** directory and create a blank **app** directory where you can start developing.
+### Run
 
-## Learn more
+```bash
+bun start
+```
 
-To learn more about developing your project with Expo, look at the following resources:
+Then scan the QR code with Expo Go (Android) or the Camera app (iOS).
 
-- [Expo documentation](https://docs.expo.dev/): Learn fundamentals, or go into advanced topics with our [guides](https://docs.expo.dev/guides).
-- [Learn Expo tutorial](https://docs.expo.dev/tutorial/introduction/): Follow a step-by-step tutorial where you'll create a project that runs on Android, iOS, and the web.
+Platform-specific shortcuts:
 
-## Join the community
+```bash
+bun run ios       # iOS simulator
+bun run android   # Android emulator
+bun run web       # Web browser (limited — no camera on most setups)
+```
 
-Join our community of developers creating universal apps.
+### Camera Permission
 
-- [Expo on GitHub](https://github.com/expo/expo): View our open source platform and contribute.
-- [Discord community](https://chat.expo.dev): Chat with Expo users and ask questions.
+Lizzy requires camera access to render the game view. On first launch, grant permission when prompted. If you denied it earlier, enable it in your device Settings → Lizzy → Camera.
+
+---
+
+## Project Structure
+
+```
+lizzy/
+├── app/                  # Expo Router screens
+│   ├── _layout.tsx       # Root layout
+│   └── index.tsx         # Main game screen
+├── components/           # Reusable UI components
+├── hooks/                # Custom React hooks
+├── constants/            # Theme and config
+├── assets/               # Images, icons, sounds
+├── global.css            # Tailwind / NativeWind styles
+└── app.json              # Expo config
+```
+
+---
+
+## Development Status
+
+Lizzy is in early development. The camera permission flow and project scaffolding are in place. Game mechanics, lizard spawning, shooting, and scoring are actively being built.
+
+---
+
+## License
+
+Private project — all rights reserved.
