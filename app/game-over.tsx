@@ -1,14 +1,15 @@
-import Button from "@/components/ui/Button";
-import Card from "@/components/ui/Card";
+import PlayButton from "@/components/ui/PlayButton";
 import Screen, { fontFamily } from "@/components/ui/Screen";
 import { radii } from "@/constants/theme";
 import { LIZARD_POINTS } from "@/hooks/useScore";
 import { useTheme } from "@/providers/ThemeProvider";
+import { Image } from "expo-image";
 import { router, useLocalSearchParams } from "expo-router";
-import { StyleSheet, Text, View } from "react-native";
+import * as Haptics from "expo-haptics";
+import { Pressable, StyleSheet, Text, View } from "react-native";
 
 export default function GameOverScreen() {
-    const { palette } = useTheme();
+    const { palette, hapticsEnabled } = useTheme();
     const params = useLocalSearchParams<{ score?: string; isNewBest?: string }>();
     const score = Number.parseInt(params.score ?? "0", 10) || 0;
     const isNewBest = params.isNewBest === "1";
@@ -17,22 +18,21 @@ export default function GameOverScreen() {
     return (
         <Screen>
             <View style={styles.container}>
-                <View style={styles.content}>
+                <View style={styles.hero}>
+                    <Image
+                        source={require("@/assets/gecko/0.png")}
+                        style={styles.mascot}
+                        contentFit="contain"
+                    />
+
                     <Text style={[styles.heading, { color: palette.primary }]}>
                         Game Over
                     </Text>
+                    <Text style={[styles.subtitle, { color: palette.textMuted }]}>
+                        Too many lizards got away
+                    </Text>
 
-                    <Card style={styles.card}>
-                        <Text style={[styles.scoreLabel, { color: palette.textMuted }]}>
-                            Final Score
-                        </Text>
-                        <Text style={[styles.score, { color: palette.primaryLight }]}>
-                            {score}
-                        </Text>
-                        <Text style={[styles.hits, { color: palette.textMuted }]}>
-                            {hits} lizard{hits === 1 ? "" : "s"} caught
-                        </Text>
-
+                    <View style={styles.stats}>
                         {isNewBest && (
                             <View
                                 style={[
@@ -46,29 +46,47 @@ export default function GameOverScreen() {
                                         { color: palette.primary },
                                     ]}
                                 >
-                                    New Best!
+                                    New best score!
                                 </Text>
                             </View>
                         )}
-                    </Card>
-                </View>
 
-                <View style={styles.footer}>
-                    <View style={styles.btnWrap}>
-                        <Button
+                        <Text style={[styles.score, { color: palette.primary }]}>
+                            {score}
+                        </Text>
+                        <Text style={[styles.hits, { color: palette.textMuted }]}>
+                            {hits} lizard{hits === 1 ? "" : "s"} caught
+                        </Text>
+                    </View>
+
+                    <View style={styles.playWrap}>
+                        <PlayButton
                             label="Play Again"
-                            variant="accent"
                             onPress={() => router.replace("/game")}
                         />
                     </View>
-                    <View style={styles.btnWrap}>
-                        <Button
-                            label="Home"
-                            variant="secondary"
-                            onPress={() => router.replace("/")}
-                        />
-                    </View>
                 </View>
+
+                <Pressable
+                    onPress={() => {
+                        if (hapticsEnabled) {
+                            void Haptics.impactAsync(
+                                Haptics.ImpactFeedbackStyle.Light,
+                            );
+                        }
+                        router.replace("/");
+                    }}
+                    style={({ pressed }) => [
+                        styles.homeBtn,
+                        { opacity: pressed ? 0.65 : 1 },
+                    ]}
+                    accessibilityRole="button"
+                    accessibilityLabel="Home"
+                >
+                    <Text style={[styles.homeLabel, { color: palette.primaryLight }]}>
+                        Home
+                    </Text>
+                </Pressable>
             </View>
         </Screen>
     );
@@ -79,52 +97,66 @@ const styles = StyleSheet.create({
         flex: 1,
         width: "100%",
     },
-    content: {
+    hero: {
         flex: 1,
         alignItems: "center",
         justifyContent: "center",
     },
+    mascot: {
+        width: 100,
+        height: 100,
+        marginBottom: 16,
+        opacity: 0.85,
+    },
     heading: {
         fontFamily: fontFamily.extraBold,
-        fontSize: 36,
-        marginBottom: 24,
+        fontSize: 40,
+        letterSpacing: -0.5,
     },
-    card: {
-        width: "100%",
+    subtitle: {
+        fontFamily: fontFamily.semiBold,
+        fontSize: 16,
+        marginTop: 6,
+        textAlign: "center",
+    },
+    stats: {
         alignItems: "center",
-    },
-    scoreLabel: {
-        fontFamily: fontFamily.semiBold,
-        fontSize: 14,
-        textTransform: "uppercase",
-        letterSpacing: 1,
-    },
-    score: {
-        fontFamily: fontFamily.extraBold,
-        fontSize: 64,
-        marginVertical: 4,
-    },
-    hits: {
-        fontFamily: fontFamily.semiBold,
-        fontSize: 15,
+        marginTop: 28,
     },
     newBest: {
         borderRadius: radii.pill,
-        paddingHorizontal: 14,
-        paddingVertical: 5,
-        marginTop: 12,
+        paddingHorizontal: 16,
+        paddingVertical: 6,
+        marginBottom: 12,
     },
     newBestText: {
         fontFamily: fontFamily.bold,
         fontSize: 14,
     },
-    footer: {
-        marginTop: "auto",
-        width: "100%",
-        paddingTop: 24,
+    score: {
+        fontFamily: fontFamily.extraBold,
+        fontSize: 72,
+        lineHeight: 80,
+        fontVariant: ["tabular-nums"],
+        letterSpacing: -2,
     },
-    btnWrap: {
-        width: "100%",
-        marginBottom: 12,
+    hits: {
+        fontFamily: fontFamily.semiBold,
+        fontSize: 15,
+        marginTop: 4,
+    },
+    playWrap: {
+        marginTop: 32,
+        alignItems: "center",
+    },
+    homeBtn: {
+        alignSelf: "center",
+        paddingVertical: 12,
+        paddingHorizontal: 16,
+        marginBottom: 4,
+    },
+    homeLabel: {
+        fontFamily: fontFamily.bold,
+        fontSize: 16,
     },
 });

@@ -1,7 +1,6 @@
 import IconButton from "@/components/ui/IconButton";
-import { fontFamily, radii } from "@/constants/theme";
+import { fontFamily } from "@/constants/theme";
 import { STARTING_LIVES } from "@/hooks/useGameState";
-import { useTheme } from "@/providers/ThemeProvider";
 import { useEffect } from "react";
 import { StyleSheet, Text, View } from "react-native";
 import Animated, {
@@ -26,7 +25,6 @@ const SHADOW = {
 
 export default function GameHUD({ score, lives, onPause }: GameHUDProps) {
     const insets = useSafeAreaInsets();
-    const { palette } = useTheme();
     const scale = useSharedValue(1);
     const escapes = STARTING_LIVES - lives;
 
@@ -45,12 +43,7 @@ export default function GameHUD({ score, lives, onPause }: GameHUDProps) {
     return (
         <View style={[styles.bar, { top: insets.top + 10 }]} pointerEvents="box-none">
             <View style={styles.left} pointerEvents="none">
-                <View
-                    style={[
-                        styles.pill,
-                        { borderColor: palette.crosshairAccent },
-                    ]}
-                >
+                <View style={styles.scoreRow}>
                     <Text style={[styles.pillLabel, SHADOW]}>Score</Text>
                     <Animated.Text style={[styles.score, SHADOW, animatedStyle]}>
                         {score}
@@ -84,15 +77,10 @@ const styles = StyleSheet.create({
         alignItems: "flex-start",
         gap: 4,
     },
-    pill: {
+    scoreRow: {
         flexDirection: "row",
         alignItems: "baseline",
         gap: 8,
-        borderRadius: radii.pill,
-        borderWidth: 2,
-        backgroundColor: "rgba(0,0,0,0.3)",
-        paddingHorizontal: 14,
-        paddingVertical: 6,
     },
     pillLabel: {
         color: "rgba(255,255,255,0.75)",

@@ -6,9 +6,10 @@ import { Pressable, StyleSheet, Text, View } from "react-native";
 
 type PlayButtonProps = {
     onPress: () => void;
+    label?: string;
 };
 
-export default function PlayButton({ onPress }: PlayButtonProps) {
+export default function PlayButton({ onPress, label = "Play" }: PlayButtonProps) {
     const { palette, hapticsEnabled } = useTheme();
 
     return (
@@ -30,11 +31,11 @@ export default function PlayButton({ onPress }: PlayButtonProps) {
                 },
             ]}
             accessibilityRole="button"
-            accessibilityLabel="Play"
+            accessibilityLabel={label}
         >
             <View style={styles.row}>
                 <Ionicons name="play" size={20} color={palette.primary} />
-                <Text style={[styles.label, { color: palette.primary }]}>Play</Text>
+                <Text style={[styles.label, { color: palette.primary }]}>{label}</Text>
             </View>
         </Pressable>
     );
