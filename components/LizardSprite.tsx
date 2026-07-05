@@ -3,11 +3,14 @@ import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 
+const STILL_FRAME = require("@/assets/gecko/0.png");
 const FRAMES = [
     require("@/assets/gecko/1.png"),
     require("@/assets/gecko/2.png"),
     require("@/assets/gecko/3.png"),
     require("@/assets/gecko/4.png"),
+    require("@/assets/gecko/5.png"),
+    require("@/assets/gecko/6.png"),
 ] as const;
 
 const SPRITE_SIZE = 250;
@@ -70,8 +73,9 @@ export default function LizardSprite({ motionOffset }: LizardSpriteProps) {
     const progress = totalDistance === 0 ? 1 : traveled / totalDistance;
     const arrived = progress >= 1;
 
-    // Cycle frames while crawling; freeze on the first frame once stopped.
-    const frameIndex = arrived ? 0 : Math.floor(now / FRAME_MS) % FRAMES.length;
+    // Cycle the crawl frames while moving; show the resting pose once stopped.
+    const frameIndex = Math.floor(now / FRAME_MS) % FRAMES.length;
+    const source = arrived ? STILL_FRAME : FRAMES[frameIndex];
 
     const worldX = startX + dx * progress;
     const worldY = startY + dy * progress;
@@ -82,7 +86,7 @@ export default function LizardSprite({ motionOffset }: LizardSpriteProps) {
     return (
         <View className="absolute inset-0" pointerEvents="none">
             <Image
-                source={FRAMES[frameIndex]}
+                source={source}
                 style={{
                     position: "absolute",
                     left: screenX,
