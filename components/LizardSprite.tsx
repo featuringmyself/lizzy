@@ -13,10 +13,7 @@ const FRAMES = [
 const SPRITE_SIZE = 250;
 const FRAME_MS = 130;
 const CRAWL_SPEED_PX_PER_SEC = 120;
-const WIGGLE_X = [0, -6, 0, 6];
 const POSITION_TICK_MS = 16;
-
-type Edge = "top" | "right" | "bottom" | "left";
 
 type SpawnConfig = {
     startX: number;
@@ -31,40 +28,16 @@ function pickSpawn(
     height: number,
     motionOffset: MotionOffset,
 ): SpawnConfig {
-    const edges: Edge[] = ["top", "right", "bottom", "left"];
-    const edge = edges[Math.floor(Math.random() * edges.length)];
-
     const viewLeft = motionOffset.x;
     const viewTop = motionOffset.y;
 
-    const endX =
-        viewLeft + width * 0.12 + Math.random() * (width * 0.76 - SPRITE_SIZE);
+    // Lizards only crawl straight down: fixed column, entering from the top.
+    const x = viewLeft + width * 0.12 + Math.random() * (width * 0.76 - SPRITE_SIZE);
+    const startY = viewTop - SPRITE_SIZE * 0.5;
     const endY =
         viewTop + height * 0.12 + Math.random() * (height * 0.76 - SPRITE_SIZE);
 
-    let startX: number;
-    let startY: number;
-
-    switch (edge) {
-        case "top":
-            startX = endX + (Math.random() - 0.5) * width * 0.35;
-            startY = viewTop - SPRITE_SIZE * 0.5;
-            break;
-        case "bottom":
-            startX = endX + (Math.random() - 0.5) * width * 0.35;
-            startY = viewTop + height + SPRITE_SIZE * 0.1;
-            break;
-        case "left":
-            startX = viewLeft - SPRITE_SIZE * 0.5;
-            startY = endY + (Math.random() - 0.5) * height * 0.35;
-            break;
-        case "right":
-            startX = viewLeft + width + SPRITE_SIZE * 0.1;
-            startY = endY + (Math.random() - 0.5) * height * 0.35;
-            break;
-    }
-
-    return { startX, startY, endX, endY, spawnTime: Date.now() };
+    return { startX: x, startY, endX: x, endY, spawnTime: Date.now() };
 }
 
 type LizardSpriteProps = {
@@ -88,7 +61,6 @@ export default function LizardSprite({ motionOffset }: LizardSpriteProps) {
     if (!spawn.current) return null;
 
     const { startX, startY, endX, endY, spawnTime } = spawn.current;
-    const frameIndex = Math.floor(now / FRAME_MS) % FRAMES.length;
 
     const dx = endX - startX;
     const dy = endY - startY;
@@ -96,11 +68,15 @@ export default function LizardSprite({ motionOffset }: LizardSpriteProps) {
     const elapsedSec = (now - spawnTime) / 1000;
     const traveled = Math.min(elapsedSec * CRAWL_SPEED_PX_PER_SEC, totalDistance);
     const progress = totalDistance === 0 ? 1 : traveled / totalDistance;
+    const arrived = progress >= 1;
+
+    // Cycle frames while crawling; freeze on the first frame once stopped.
+    const frameIndex = arrived ? 0 : Math.floor(now / FRAME_MS) % FRAMES.length;
 
     const worldX = startX + dx * progress;
     const worldY = startY + dy * progress;
 
-    const screenX = worldX - motionOffset.x + WIGGLE_X[frameIndex];
+    const screenX = worldX - motionOffset.x;
     const screenY = worldY - motionOffset.y;
 
     return (

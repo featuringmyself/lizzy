@@ -1,4 +1,4 @@
-import { DeviceMotion, Gyroscope } from "expo-sensors";
+import { Gyroscope } from "expo-sensors";
 import { useEffect, useRef, useState } from "react";
 
 export type MotionOffset = {
@@ -10,73 +10,47 @@ const PIXELS_PER_DEGREE = 12;
 const PIXELS_PER_RADIAN = (PIXELS_PER_DEGREE * 180) / Math.PI;
 const UPDATE_INTERVAL_MS = 16;
 
+// Flip these if panning feels inverted on your device.
+const INVERT_X = 1;
+const INVERT_Y = 1;
+
+// Reject absurd time gaps (e.g. app resuming from background).
+const MAX_DT_SEC = 0.1;
+
 export function useMotionOffset(): MotionOffset {
     const [offset, setOffset] = useState<MotionOffset>({ x: 0, y: 0 });
     const offsetRef = useRef<MotionOffset>({ x: 0, y: 0 });
-    const lastGyroTimestamp = useRef<number | null>(null);
-    const orientationBaseline = useRef<{ beta: number; gamma: number } | null>(
-        null,
-    );
+    const lastSampleMs = useRef<number | null>(null);
 
     useEffect(() => {
-        let gyroSub: ReturnType<typeof Gyroscope.addListener> | null = null;
-        let motionSub: ReturnType<typeof DeviceMotion.addListener> | null = null;
+        let sub: ReturnType<typeof Gyroscope.addListener> | null = null;
         let active = true;
 
-        function publishOffset() {
-            setOffset({ x: offsetRef.current.x, y: offsetRef.current.y });
-        }
-
         async function start() {
-            const gyroAvailable = await Gyroscope.isAvailableAsync();
-            if (gyroAvailable && active) {
-                Gyroscope.setUpdateInterval(UPDATE_INTERVAL_MS);
-                gyroSub = Gyroscope.addListener(({ x, y, timestamp }) => {
-                    const nowMs = timestamp * 1000;
-                    const dt =
-                        lastGyroTimestamp.current != null
-                            ? (nowMs - lastGyroTimestamp.current) / 1000
-                            : 0;
-                    lastGyroTimestamp.current = nowMs;
+            const available = await Gyroscope.isAvailableAsync();
+            if (!available || !active) return;
 
-                    if (dt <= 0 || dt > 0.25) return;
+            Gyroscope.setUpdateInterval(UPDATE_INTERVAL_MS);
 
-                    offsetRef.current = {
-                        x: offsetRef.current.x + y * dt * PIXELS_PER_RADIAN,
-                        y: offsetRef.current.y + x * dt * PIXELS_PER_RADIAN,
-                    };
-                    publishOffset();
-                });
-            }
+            sub = Gyroscope.addListener(({ x, y }) => {
+                // Use the wall clock for dt — the sensor's own `timestamp`
+                // field has inconsistent units across platforms.
+                const nowMs = Date.now();
+                const prevMs = lastSampleMs.current;
+                lastSampleMs.current = nowMs;
 
-            const motionAvailable = await DeviceMotion.isAvailableAsync();
-            if (!motionAvailable || !active) return;
+                if (prevMs == null) return;
 
-            const { granted } = await DeviceMotion.requestPermissionsAsync();
-            if (!granted || !active) return;
+                const dt = (nowMs - prevMs) / 1000;
+                if (dt <= 0 || dt > MAX_DT_SEC) return;
 
-            DeviceMotion.setUpdateInterval(UPDATE_INTERVAL_MS);
-            motionSub = DeviceMotion.addListener(({ rotation }) => {
-                if (!orientationBaseline.current) {
-                    orientationBaseline.current = {
-                        beta: rotation.beta,
-                        gamma: rotation.gamma,
-                    };
-                    return;
-                }
-
-                const targetX =
-                    (rotation.gamma - orientationBaseline.current.gamma) *
-                    PIXELS_PER_DEGREE;
-                const targetY =
-                    (rotation.beta - orientationBaseline.current.beta) *
-                    PIXELS_PER_DEGREE;
-
+                // Panning the phone right (rotation around device Y) scrolls the
+                // world left, so the viewport's world origin moves right.
                 offsetRef.current = {
-                    x: offsetRef.current.x + (targetX - offsetRef.current.x) * 0.08,
-                    y: offsetRef.current.y + (targetY - offsetRef.current.y) * 0.08,
+                    x: offsetRef.current.x - y * dt * PIXELS_PER_RADIAN * INVERT_X,
+                    y: offsetRef.current.y - x * dt * PIXELS_PER_RADIAN * INVERT_Y,
                 };
-                publishOffset();
+                setOffset({ x: offsetRef.current.x, y: offsetRef.current.y });
             });
         }
 
@@ -84,8 +58,7 @@ export function useMotionOffset(): MotionOffset {
 
         return () => {
             active = false;
-            gyroSub?.remove();
-            motionSub?.remove();
+            sub?.remove();
         };
     }, []);
 
