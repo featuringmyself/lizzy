@@ -23,14 +23,18 @@ export default function BackHeader({ title }: BackHeaderProps) {
                 accessibilityLabel="Go back"
                 hitSlop={8}
             >
-                <Ionicons
-                    name="chevron-back"
-                    size={24}
-                    color={palette.primaryLight}
-                />
-                <Text style={[styles.backLabel, { color: palette.primaryLight }]}>
-                    Back
-                </Text>
+                <View style={styles.backRow}>
+                    <Ionicons
+                        name="chevron-back"
+                        size={22}
+                        color={palette.primaryLight}
+                    />
+                    <Text
+                        style={[styles.backLabel, { color: palette.primaryLight }]}
+                    >
+                        Back
+                    </Text>
+                </View>
             </Pressable>
             <Text style={[styles.title, { color: palette.primary }]}>{title}</Text>
         </View>
@@ -42,15 +46,19 @@ const styles = StyleSheet.create({
         marginBottom: 20,
     },
     backBtn: {
+        alignSelf: "flex-start",
+        marginBottom: 12,
+    },
+    backRow: {
         flexDirection: "row",
         alignItems: "center",
-        marginBottom: 12,
-        marginLeft: -4,
+        gap: 2,
     },
     backLabel: {
         fontFamily: fontFamily.bold,
         fontSize: 17,
-        marginLeft: -2,
+        lineHeight: 22,
+        includeFontPadding: false,
     },
     title: {
         fontFamily: fontFamily.extraBold,

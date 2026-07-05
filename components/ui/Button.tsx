@@ -10,7 +10,7 @@ import {
     type ViewStyle,
 } from "react-native";
 
-type ButtonVariant = "primary" | "secondary";
+type ButtonVariant = "primary" | "secondary" | "accent";
 
 type ButtonProps = PressableProps & {
     label: string;
@@ -39,7 +39,26 @@ export default function Button({
         onPress?.(event);
     };
 
-    const isPrimary = variant === "primary";
+    const colors =
+        variant === "accent"
+            ? {
+                  bg: palette.accent,
+                  border: palette.primary,
+                  text: palette.primary,
+              }
+            : variant === "primary"
+              ? {
+                    bg: palette.primary,
+                    border: palette.primary,
+                    text: palette.background,
+                }
+              : {
+                    bg: palette.card,
+                    border: palette.primaryLight,
+                    text: palette.text,
+                };
+
+    const isShadow = variant !== "secondary";
 
     return (
         <Pressable
@@ -49,10 +68,11 @@ export default function Button({
                 styles.base,
                 size === "lg" ? styles.lg : styles.md,
                 fullWidth && styles.fullWidth,
-                isPrimary ? styles.primaryShadow : styles.secondary,
+                isShadow && styles.primaryShadow,
+                !isShadow && styles.secondary,
                 {
-                    backgroundColor: isPrimary ? palette.primaryLight : palette.card,
-                    borderColor: isPrimary ? palette.primary : palette.primaryLight,
+                    backgroundColor: colors.bg,
+                    borderColor: colors.border,
                     opacity: disabled ? 0.5 : pressed ? 0.88 : 1,
                 },
                 style,
@@ -65,7 +85,7 @@ export default function Button({
                 style={[
                     styles.label,
                     size === "lg" ? styles.labelLg : styles.labelMd,
-                    { color: isPrimary ? "#FFFFFF" : palette.text },
+                    { color: colors.text },
                 ]}
             >
                 {label}
@@ -83,7 +103,6 @@ const styles = StyleSheet.create({
     },
     fullWidth: {
         alignSelf: "stretch",
-        width: "100%",
     },
     lg: {
         height: 56,

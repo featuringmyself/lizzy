@@ -54,15 +54,20 @@ export default function GameOverScreen() {
                 </View>
 
                 <View style={styles.footer}>
-                    <Button
-                        label="Play Again"
-                        onPress={() => router.replace("/game")}
-                    />
-                    <Button
-                        label="Home"
-                        variant="secondary"
-                        onPress={() => router.replace("/")}
-                    />
+                    <View style={styles.btnWrap}>
+                        <Button
+                            label="Play Again"
+                            variant="accent"
+                            onPress={() => router.replace("/game")}
+                        />
+                    </View>
+                    <View style={styles.btnWrap}>
+                        <Button
+                            label="Home"
+                            variant="secondary"
+                            onPress={() => router.replace("/")}
+                        />
+                    </View>
                 </View>
             </View>
         </Screen>
@@ -72,6 +77,7 @@ export default function GameOverScreen() {
 const styles = StyleSheet.create({
     container: {
         flex: 1,
+        width: "100%",
     },
     content: {
         flex: 1,
@@ -113,7 +119,12 @@ const styles = StyleSheet.create({
         fontSize: 14,
     },
     footer: {
-        gap: 12,
-        paddingBottom: 8,
+        marginTop: "auto",
+        width: "100%",
+        paddingTop: 24,
+    },
+    btnWrap: {
+        width: "100%",
+        marginBottom: 12,
     },
 });
