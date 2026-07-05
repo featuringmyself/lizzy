@@ -1,3 +1,4 @@
+import LizardSprite from "@/components/LizardSprite";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import { Button, Text, View } from "react-native";
 
@@ -21,8 +22,9 @@ export default function Index() {
   }
 
   return (
-    <View className="flex-1 justify-center items-center">
-      <CameraView className="flex-1" facing="back" style={{ width: "100%", height: "100%" }} />
+    <View className="flex-1">
+      <CameraView className="absolute inset-0" facing="back" style={{ width: "100%", height: "100%" }} />
+      <LizardSprite />
     </View>
   );
 }
