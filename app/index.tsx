@@ -1,3 +1,5 @@
+import Crosshair from "@/components/Crosshair";
+import Gun from "@/components/Gun";
 import LizardField from "@/components/LizardField";
 import { useMotionOffset } from "@/hooks/useMotionOffset";
 import { CameraView, useCameraPermissions } from "expo-camera";
@@ -26,6 +28,8 @@ export default function Index() {
     <View className="flex-1">
       <CameraView className="absolute inset-0" facing="back" style={{ width: "100%", height: "100%" }} />
       <LizardField motionOffset={motionOffset} />
+      <Crosshair />
+      <Gun />
     </View>
   );
 }

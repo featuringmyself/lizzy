@@ -51,7 +51,8 @@
         {
           "motionPermission": "Allow $(PRODUCT_NAME) to access your device motion"
         }
-      ]
+      ],
+      "expo-audio"
     ],
     "experiments": {
       "typedRoutes": true,

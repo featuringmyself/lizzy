@@ -3,8 +3,10 @@ import { Image } from "expo-image";
 import { useEffect, useRef, useState } from "react";
 import { useWindowDimensions, View } from "react-native";
 
-const STILL_FRAME = require("@/assets/gecko/0.png");
+export const SPRITE_SIZE = 250;
+
 const FRAMES = [
+    require("@/assets/gecko/0.png"),
     require("@/assets/gecko/1.png"),
     require("@/assets/gecko/2.png"),
     require("@/assets/gecko/3.png"),
@@ -13,16 +15,20 @@ const FRAMES = [
     require("@/assets/gecko/6.png"),
 ] as const;
 
-const SPRITE_SIZE = 250;
 const FRAME_MS = 130;
 const CRAWL_SPEED_PX_PER_SEC = 120;
 const POSITION_TICK_MS = 16;
 
+export type LizardBounds = {
+    x: number;
+    y: number;
+    width: number;
+    height: number;
+};
+
 type SpawnConfig = {
     startX: number;
     startY: number;
-    endX: number;
-    endY: number;
     spawnTime: number;
 };
 
@@ -34,23 +40,30 @@ function pickSpawn(
     const viewLeft = motionOffset.x;
     const viewTop = motionOffset.y;
 
-    // Lizards only crawl straight down: fixed column, entering from the top.
-    const x = viewLeft + width * 0.12 + Math.random() * (width * 0.76 - SPRITE_SIZE);
+    const crawlLaneWidth = Math.max(width * 0.76 - SPRITE_SIZE, width * 0.4);
+    const x = viewLeft + width * 0.12 + Math.random() * crawlLaneWidth;
     const startY = viewTop - SPRITE_SIZE * 0.5;
-    const endY =
-        viewTop + height * 0.12 + Math.random() * (height * 0.76 - SPRITE_SIZE);
 
-    return { startX: x, startY, endX: x, endY, spawnTime: Date.now() };
+    return { startX: x, startY, spawnTime: Date.now() };
 }
 
 type LizardSpriteProps = {
+    id: number;
     motionOffset: MotionOffset;
+    onBoundsChange: (id: number, bounds: LizardBounds | null) => void;
+    onExitScreen: (id: number) => void;
 };
 
-export default function LizardSprite({ motionOffset }: LizardSpriteProps) {
+export default function LizardSprite({
+    id,
+    motionOffset,
+    onBoundsChange,
+    onExitScreen,
+}: LizardSpriteProps) {
     const { width, height } = useWindowDimensions();
     const [now, setNow] = useState(Date.now());
     const spawn = useRef<SpawnConfig | null>(null);
+    const exited = useRef(false);
 
     if (spawn.current === null && width > 0 && height > 0) {
         spawn.current = pickSpawn(width, height, motionOffset);
@@ -61,32 +74,45 @@ export default function LizardSprite({ motionOffset }: LizardSpriteProps) {
         return () => clearInterval(id);
     }, []);
 
-    if (!spawn.current) return null;
+    useEffect(() => {
+        return () => onBoundsChange(id, null);
+    }, [id, onBoundsChange]);
 
-    const { startX, startY, endX, endY, spawnTime } = spawn.current;
-
-    const dx = endX - startX;
-    const dy = endY - startY;
-    const totalDistance = Math.hypot(dx, dy);
-    const elapsedSec = (now - spawnTime) / 1000;
-    const traveled = Math.min(elapsedSec * CRAWL_SPEED_PX_PER_SEC, totalDistance);
-    const progress = totalDistance === 0 ? 1 : traveled / totalDistance;
-    const arrived = progress >= 1;
-
-    // Cycle the crawl frames while moving; show the resting pose once stopped.
-    const frameIndex = Math.floor(now / FRAME_MS) % FRAMES.length;
-    const source = arrived ? STILL_FRAME : FRAMES[frameIndex];
-
-    const worldX = startX + dx * progress;
-    const worldY = startY + dy * progress;
-
+    const spawnConfig = spawn.current;
+    const elapsedSec = spawnConfig ? (now - spawnConfig.spawnTime) / 1000 : 0;
+    const worldX = spawnConfig?.startX ?? 0;
+    const worldY = spawnConfig ? spawnConfig.startY + elapsedSec * CRAWL_SPEED_PX_PER_SEC : 0;
     const screenX = worldX - motionOffset.x;
     const screenY = worldY - motionOffset.y;
+
+    useEffect(() => {
+        if (!spawnConfig) return;
+
+        onBoundsChange(id, {
+            x: screenX,
+            y: screenY,
+            width: SPRITE_SIZE,
+            height: SPRITE_SIZE,
+        });
+    }, [id, onBoundsChange, screenX, screenY, spawnConfig]);
+
+    useEffect(() => {
+        if (!spawnConfig || exited.current) return;
+        if (screenY > height + SPRITE_SIZE * 0.25) {
+            exited.current = true;
+            onBoundsChange(id, null);
+            onExitScreen(id);
+        }
+    }, [height, id, onBoundsChange, onExitScreen, screenY, spawnConfig]);
+
+    if (!spawnConfig) return null;
+
+    const frameIndex = Math.floor(now / FRAME_MS) % FRAMES.length;
 
     return (
         <View className="absolute inset-0" pointerEvents="none">
             <Image
-                source={source}
+                source={FRAMES[frameIndex]}
                 style={{
                     position: "absolute",
                     left: screenX,
