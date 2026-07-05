@@ -29,5 +29,9 @@ export function useScore() {
         setScore((prev) => prev + LIZARD_POINTS);
     }, []);
 
-    return { score, highScore, addLizardHit };
+    const resetScore = useCallback(() => {
+        setScore(0);
+    }, []);
+
+    return { score, highScore, addLizardHit, resetScore, loaded };
 }

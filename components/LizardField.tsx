@@ -1,6 +1,8 @@
 import LizardSprite, { type LizardBounds, SPRITE_SIZE } from "@/components/LizardSprite";
+import type { LizardTypeId } from "@/hooks/useBestiary";
 import { useGunSound } from "@/hooks/useGunSound";
 import type { MotionOffset } from "@/hooks/useMotionOffset";
+import { useTheme } from "@/providers/ThemeProvider";
 import * as Haptics from "expo-haptics";
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Pressable, StyleSheet, useWindowDimensions } from "react-native";
@@ -8,6 +10,7 @@ import { Pressable, StyleSheet, useWindowDimensions } from "react-native";
 const FIRST_SPAWN_MS = 600;
 const SLOWEST_SPAWN_MS = 2600;
 const RAMP_PER_LIZARD_MS = 180;
+const DEFAULT_LIZARD_TYPE: LizardTypeId = "gecko";
 
 function spawnDelayFor(count: number): number {
     if (count === 0) return FIRST_SPAWN_MS;
@@ -26,12 +29,18 @@ function pointInBounds(x: number, y: number, bounds: LizardBounds): boolean {
 
 type LizardFieldProps = {
     motionOffset: MotionOffset;
-    onLizardHit?: () => void;
+    onLizardHit?: (typeId: LizardTypeId) => void;
+    onLizardEscape?: () => void;
 };
 
-export default function LizardField({ motionOffset, onLizardHit }: LizardFieldProps) {
+export default function LizardField({
+    motionOffset,
+    onLizardHit,
+    onLizardEscape,
+}: LizardFieldProps) {
     const { width, height } = useWindowDimensions();
     const playGunSound = useGunSound();
+    const { hapticsEnabled } = useTheme();
     const [ids, setIds] = useState<number[]>([]);
     const nextId = useRef(0);
     const boundsRef = useRef<Map<number, LizardBounds>>(new Map());
@@ -82,18 +91,25 @@ export default function LizardField({ motionOffset, onLizardHit }: LizardFieldPr
             const bounds = boundsRef.current.get(id);
             if (bounds && pointInBounds(aimX, aimY, bounds)) {
                 removeLizard(id);
-                onLizardHit?.();
-                void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                onLizardHit?.(DEFAULT_LIZARD_TYPE);
+                if (hapticsEnabled) {
+                    void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
+                }
                 return;
             }
         }
 
-        void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
-    }, [height, ids, onLizardHit, playGunSound, removeLizard, width]);
+        if (hapticsEnabled) {
+            void Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+        }
+    }, [height, hapticsEnabled, ids, onLizardHit, playGunSound, removeLizard, width]);
 
     const handleExitScreen = useCallback(
-        (id: number) => removeLizard(id),
-        [removeLizard],
+        (id: number) => {
+            removeLizard(id);
+            onLizardEscape?.();
+        },
+        [onLizardEscape, removeLizard],
     );
 
     return (

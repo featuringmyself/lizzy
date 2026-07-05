@@ -3,7 +3,7 @@ import { useWindowDimensions, View } from "react-native";
 
 export default function Gun() {
     const { width } = useWindowDimensions();
-    const gunWidth = width * 0.9;
+    const gunWidth = width * 0.75;
     const gunHeight = gunWidth * 0.6;
 
     return (
