@@ -8,7 +8,7 @@ export default function Gun() {
 
     return (
         <View
-            className="absolute inset-x-0 bottom-0 items-center"
+            className="absolute inset-x-0 bottom-10 items-center"
             pointerEvents="none"
         >
             <Image
