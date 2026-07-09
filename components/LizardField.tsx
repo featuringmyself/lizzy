@@ -43,19 +43,23 @@ export default function LizardField({
     const { hapticsEnabled } = useTheme();
     const [ids, setIds] = useState<number[]>([]);
     const nextId = useRef(0);
+    const spawnGeneration = useRef(0);
     const boundsRef = useRef<Map<number, LizardBounds>>(new Map());
 
     useEffect(() => {
+        const generation = ++spawnGeneration.current;
         let timeout: ReturnType<typeof setTimeout>;
         let spawnCount = 0;
-        let active = true;
+        let cancelled = false;
 
         const scheduleNext = () => {
             const delay = spawnDelayFor(spawnCount);
             timeout = setTimeout(() => {
-                if (!active) return;
-                setIds((prev) => [...prev, nextId.current]);
-                nextId.current += 1;
+                if (cancelled || spawnGeneration.current !== generation) return;
+                setIds((prev) => {
+                    const id = nextId.current++;
+                    return prev.includes(id) ? prev : [...prev, id];
+                });
                 spawnCount += 1;
                 scheduleNext();
             }, delay);
@@ -63,7 +67,7 @@ export default function LizardField({
 
         scheduleNext();
         return () => {
-            active = false;
+            cancelled = true;
             clearTimeout(timeout);
         };
     }, []);

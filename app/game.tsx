@@ -14,7 +14,7 @@ import { useTheme } from "@/providers/ThemeProvider";
 import { CameraView, useCameraPermissions } from "expo-camera";
 import * as Haptics from "expo-haptics";
 import { router, useFocusEffect } from "expo-router";
-import { useCallback, useEffect, useRef } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Alert, StyleSheet, Text, View } from "react-native";
 
 export default function GameScreen() {
@@ -27,6 +27,7 @@ export default function GameScreen() {
     const sessionStartHighScore = useRef(0);
     const navigated = useRef(false);
     const highScoreRef = useRef(highScore);
+    const [fieldKey, setFieldKey] = useState(0);
     highScoreRef.current = highScore;
 
     useFocusEffect(
@@ -36,6 +37,7 @@ export default function GameScreen() {
             resetScore();
             resetGame();
             navigated.current = false;
+            setFieldKey((key) => key + 1);
         }, [scoreLoaded, resetScore, resetGame]),
     );
 
@@ -111,6 +113,7 @@ export default function GameScreen() {
                 style={{ width: "100%", height: "100%" }}
             />
             <LizardField
+                key={fieldKey}
                 motionOffset={motionOffset}
                 onLizardHit={handleLizardHit}
                 onLizardEscape={handleLizardEscape}
